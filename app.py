@@ -27,9 +27,6 @@ def extract_links(url):
         response_intermediate = session.get(intermediate_url)
         response_intermediate.raise_for_status()
         
-        with open("intermediate_page.html", "w", encoding="utf-8") as f:
-            f.write(response_intermediate.text)
-        
         links = []
         
         # 1. FSL Server
@@ -110,9 +107,6 @@ def extract_gdflix_links(url):
         
         response = session.get(url)
         response.raise_for_status()
-        
-        with open("gdflix_page.html", "w", encoding="utf-8") as f:
-            f.write(response.text)
         
         links = []
         
