@@ -115,31 +115,42 @@ def extract_gdflix_links(url):
         if instant_match:
             instant_url = instant_match.group(1)
             try:
-                # Follow redirect with Referer
+                # Follow redirect with Referer - use GET to get the HTML page
                 # The Referer must be the GDFlix page URL
-                head_headers = headers.copy()
-                head_headers['Referer'] = response.url
+                get_headers = headers.copy()
+                get_headers['Referer'] = response.url
                 
-                resp = session.head(instant_url, headers=head_headers, allow_redirects=True)
-                final_url = resp.url
+                # Make GET request to follow redirects and get the final page
+                resp = session.get(instant_url, headers=get_headers, allow_redirects=True, timeout=15)
                 
-                # Check if it's a filesgram link with 'url' parameter
-                if "filesgram" in final_url:
-                    from urllib.parse import urlparse, parse_qs
-                    parsed_url = urlparse(final_url)
-                    query_params = parse_qs(parsed_url.query)
-                    if 'url' in query_params:
-                        final_url = query_params['url'][0]
+                # Try to extract googleusercontent.com link from the HTML
+                # The link is typically in an "Instant Download" button or similar element
+                google_link_match = re.search(r'href="(https://[^"]*googleusercontent\.com[^"]*)"', resp.text)
                 
-                # Check if the result is a fastcdn-dl wrapper (can be direct or from filesgram)
-                if "fastcdn-dl.pages.dev" in final_url:
-                     from urllib.parse import urlparse, parse_qs
-                     parsed_nested = urlparse(final_url)
-                     nested_params = parse_qs(parsed_nested.query)
-                     if 'url' in nested_params:
-                         final_url = nested_params['url'][0]
-                
-                links.append({"name": "Instant DL (10Gbps)", "url": final_url})
+                if google_link_match:
+                    final_url = google_link_match.group(1)
+                    links.append({"name": "Instant DL (10Gbps)", "url": final_url})
+                else:
+                    # If no googleusercontent link found, try other patterns
+                    final_url = resp.url
+                    
+                    # Check if it's a filesgram link with 'url' parameter
+                    if "filesgram" in final_url:
+                        from urllib.parse import urlparse, parse_qs
+                        parsed_url = urlparse(final_url)
+                        query_params = parse_qs(parsed_url.query)
+                        if 'url' in query_params:
+                            final_url = query_params['url'][0]
+                    
+                    # Check if the result is a fastcdn-dl wrapper (can be direct or from filesgram)
+                    if "fastcdn-dl.pages.dev" in final_url:
+                         from urllib.parse import urlparse, parse_qs
+                         parsed_nested = urlparse(final_url)
+                         nested_params = parse_qs(parsed_nested.query)
+                         if 'url' in nested_params:
+                             final_url = nested_params['url'][0]
+                    
+                    links.append({"name": "Instant DL (10Gbps)", "url": final_url})
             except Exception as e:
                 print(f"Error following Instant DL redirect: {e}")
                 # Fallback to original link if redirect fails
