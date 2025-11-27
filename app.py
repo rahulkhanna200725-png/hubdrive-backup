@@ -110,8 +110,8 @@ def extract_gdflix_links(url):
         
         links = []
         
-        # 1. Instant DL [10GBPS] (instant.busycdn.cfd)
-        instant_match = re.search(r'href="(https://instant\.busycdn\.cfd/[^"]+)"', response.text)
+        # 1. Instant DL [10GBPS] (instant.busycdn.cfd or cdn.foxcloud.lol)
+        instant_match = re.search(r'href="(https://(?:instant\.busycdn\.cfd|cdn\.foxcloud\.lol)/[^"]+)"', response.text)
         if instant_match:
             instant_url = instant_match.group(1)
             try:
@@ -178,7 +178,7 @@ def extract():
                      "Please use the corresponding HubCloud.foo link instead, which provides the same file with direct download links."
         })
     
-    if "gdflix" in url:
+    if "gdflix" in url or "gdlink" in url:
         result = extract_gdflix_links(url)
     else:
         result = extract_links(url)
