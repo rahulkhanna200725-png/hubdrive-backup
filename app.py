@@ -181,7 +181,11 @@ def extract_gdflix_links(url):
              links.append({"name": "Pixeldrain (Direct)", "url": direct_link})
         
         # 3. Worker Download (for gdrex.sbs and similar)
+        # Check both href and onclick attributes
         worker_match = re.search(r'href="(https://[^"]*workers?\.dev/[^"]+)"', response.text)
+        if not worker_match:
+            # Try onclick attribute
+            worker_match = re.search(r"onclick=['\"]window\.location\.href='(https://[^'\"]*workers?\.dev[^'\"]*)'", response.text)
         if worker_match:
             links.append({"name": "Worker Download", "url": worker_match.group(1)})
         
