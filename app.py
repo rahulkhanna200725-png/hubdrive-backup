@@ -179,6 +179,26 @@ def extract_gdflix_links(url):
              file_id = original_link.split('/')[-1]
              direct_link = f"https://pixeldrain.com/api/file/{file_id}?download"
              links.append({"name": "Pixeldrain (Direct)", "url": direct_link})
+        
+        # 3. Worker Download (for gdrex.sbs and similar)
+        worker_match = re.search(r'href="(https://[^"]*workers?\.dev/[^"]+)"', response.text)
+        if worker_match:
+            links.append({"name": "Worker Download", "url": worker_match.group(1)})
+        
+        # 4. Gofile DL
+        gofile_match = re.search(r'href="(https://gofile\.io/d/[^"]+)"', response.text)
+        if gofile_match:
+            links.append({"name": "Gofile", "url": gofile_match.group(1)})
+        
+        # 5. Neodrive Server (for gdrex.sbs)
+        neodrive_match = re.search(r'href="(https://neolinks\.sbs/file/[^"]+)"', response.text)
+        if neodrive_match:
+            links.append({"name": "Neodrive Server", "url": neodrive_match.group(1)})
+        
+        # 6. G-Cloud Server (for gdrex.sbs)
+        gcloud_match = re.search(r'href="(https://gdshare\.top/download/[^"]+)"', response.text)
+        if gcloud_match:
+            links.append({"name": "G-Cloud Server", "url": gcloud_match.group(1)})
              
         if not links:
              return {"error": "No download links found on GDFlix page."}
@@ -205,7 +225,7 @@ def extract():
                      "Please use the corresponding HubCloud.foo link instead, which provides the same file with direct download links."
         })
     
-    if "gdflix" in url or "gdlink" in url:
+    if "gdflix" in url or "gdlink" in url or "gdrex" in url:
         result = extract_gdflix_links(url)
     else:
         result = extract_links(url)
